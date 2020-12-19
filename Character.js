@@ -1,9 +1,9 @@
-function Character(name, profession, gold, health, level, xp) {
+function Character(name, profession, gold, health, level, xp, nextLevelAt) {
     this.name = name;
     this.gold = gold || 100;
     this.level = level || 1;
     this.xp = xp || 0;
-    this.nextLevelAt = 100;
+    this.nextLevelAt = nextLevelAt || 100;
 
     switch (profession) {
         case 'Warrior':
