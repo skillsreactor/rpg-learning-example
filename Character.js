@@ -1,6 +1,9 @@
 function Character(name, profession, gold, health) {
     this.name = name;
     this.gold = gold || 100;
+    this.level = 1;
+    this.xp = 0;
+    this.nextLevelAt = 100;
 
     switch (profession) {
         case 'Warrior':
@@ -26,6 +29,13 @@ Character.prototype.receiveDamage = function(amount) {
     this.profession.health -= amount;
 }
 
+Character.prototype.levelUp = function() {
+    this.level += 1;
+    character.nextLevelAt = Math.floor(character.nextLevelAt + (character.nextLevelAt/1.5) - (character.nextLevelAt / character.level^2)); 
+    console.log(`Reach the next level at ${character.nextLevelAt} XP!`);
+
+
+}
 
 /**
  * Warrior

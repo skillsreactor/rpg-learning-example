@@ -10,8 +10,9 @@ const attack = (character) => {
     const damage = Math.floor(Math.random() * 10 + 1); // 1 - 10 damage
     const health = Math.floor(Math.random() * 10 + 21); // 10 - 30 health
     const gold = health + damage;
-    
-    const enemy = { damage, health, gold };
+    const xp = Math.floor(health * 1.5);
+
+    const enemy = { damage, health, gold, };
 
     while (character.profession.health > 0 && enemy.health > 0) {
         const prevEnemyHealth = enemy.health;
@@ -26,9 +27,14 @@ const attack = (character) => {
         console.log("You have died.");
         return null;
     } else {
-        console.log(`You have defeated the enemy and received ${gold} gold!`)
+        console.log(`You have defeated the enemy and received ${gold} gold and ${xp} XP!`)
+        character.XP += xp;
         character.gold += enemy.gold;
         console.log(`You now have ${character.profession.health} health and ${character.gold} gold.`);
+    }
+
+    if(character.xp >= character.nextLevelAt) {
+        character.levelup();
     }
 
     return character;
@@ -42,9 +48,9 @@ const attack = (character) => {
 const rest = (character) => {
     character.gold -= 50;
     character.profession.health += 25;
-
-    console.log("You have gained 25 health for 10 gold.");
-    console.log(`You now have ${character.profession.health} health and ${character.gold} gold.`);
+    character.xp += 10;
+    console.log("You have gained 25 health for 10 gold and 10 XP.");
+    console.log(`You now have ${character.profession.health} health, ${character.gold} gold and ${character.xp} XP.`);
 
     return character;
 }
