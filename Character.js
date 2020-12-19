@@ -34,7 +34,7 @@ Character.prototype.gainXP = function() {
     const xp = Math.floor(Math.random() * 10 + 21) * multiplier;
     const maxXpGain = Math.floor(Math.random() * 10 + 21) * 2;
 
-    if (this.level === 20) {
+    if (this.level >= 20) {
         this.xp += maxXpGain;
         console.log(`You gained ${maxXpGain} XP!`)
     } else {
