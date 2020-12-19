@@ -29,7 +29,7 @@ const attack = (character) => {
     } else {
         console.log(`You have defeated the enemy and received ${gold} gold and 101 XP!`)
         
-        character.determineXP(enemy);
+        character.gainXP();
         character.gold += enemy.gold;
         console.log(`You now have ${character.profession.health} health. ${character.gold} gold and ${character.xp} XP.`);
     }

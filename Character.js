@@ -1,8 +1,8 @@
-function Character(name, profession, gold, health) {
+function Character(name, profession, gold, health, xp) {
     this.name = name;
     this.gold = gold || 100;
     this.level = 1;
-    this.xp = 0;
+    this.xp = xp || 0;
     this.nextLevelAt = 100;
 
     switch (profession) {
@@ -29,7 +29,7 @@ Character.prototype.receiveDamage = function(amount) {
     this.profession.health -= amount;
 }
 
-Character.prototype.gainXP = function(enemy) {
+Character.prototype.gainXP = function() {
     const multiplier = Math.floor(1 + this.level/10);
     const xp = Math.floor(Math.random() * 10 + 21) * multiplier;
     const maxXpGain = Math.floor(Math.random() * 10 + 21) * 2;
@@ -45,7 +45,7 @@ Character.prototype.gainXP = function(enemy) {
 
 Character.prototype.levelUp = function() {
     this.level += 1;
-    this.nextLevelAt = Math.floor(this.nextLevelAt + (this.nextLevelAt/1.5) - (this.nextLevelAt / this.level^2));
+    this.nextLevelAt = Math.floor(this.nextLevelAt + (this.nextLevelAt * 2) - (this.level * 50));
     console.log(`Reach the next level at ${this.nextLevelAt} XP!`);
 }
 
