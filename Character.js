@@ -29,12 +29,24 @@ Character.prototype.receiveDamage = function(amount) {
     this.profession.health -= amount;
 }
 
+Character.prototype.gainXP = function(enemy) {
+    const multiplier = Math.floor(1 + this.level/10);
+    const xp = Math.floor(Math.random() * 10 + 21) * multiplier;
+    const maxXpGain = Math.floor(Math.random() * 10 + 21) * 2;
+
+    if (this.level === 20) {
+        this.xp += maxXpGain;
+        console.log(`You gained ${maxXpGain} XP!`)
+    } else {
+        this.xp += xp;
+        console.log(`You gained ${xp} XP!`)
+    }
+}
+
 Character.prototype.levelUp = function() {
     this.level += 1;
-    character.nextLevelAt = Math.floor(character.nextLevelAt + (character.nextLevelAt/1.5) - (character.nextLevelAt / character.level^2)); 
-    console.log(`Reach the next level at ${character.nextLevelAt} XP!`);
-
-
+    this.nextLevelAt = Math.floor(this.nextLevelAt + (this.nextLevelAt/1.5) - (this.nextLevelAt / this.level^2));
+    console.log(`Reach the next level at ${this.nextLevelAt} XP!`);
 }
 
 /**
