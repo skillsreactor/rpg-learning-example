@@ -95,7 +95,7 @@ const createCharacter = () => {
 }
 
 const initializeCharacter = (data) => {
-    return new Character(data.name, data.profession.profession, data.gold, data.profession.health, data.xp);
+    return new Character(data.name, data.profession.profession, data.gold, data.profession.health, data.level, data.xp);
 }
 
 

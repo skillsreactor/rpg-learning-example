@@ -1,7 +1,7 @@
-function Character(name, profession, gold, health, xp) {
+function Character(name, profession, gold, health, level, xp) {
     this.name = name;
     this.gold = gold || 100;
-    this.level = 1;
+    this.level = level || 1;
     this.xp = xp || 0;
     this.nextLevelAt = 100;
 
