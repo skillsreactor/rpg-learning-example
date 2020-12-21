@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/skillsreactor/rpg-learning-example#readme",
   "dependencies": {
+    "chalk": "^4.1.0",
     "inquirer": "^7.3.3"
   }
 }
