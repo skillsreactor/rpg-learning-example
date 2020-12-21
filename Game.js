@@ -196,6 +196,7 @@ class Game extends events.EventEmitter {
                 choices: ['Warrior', 'Thief', 'Mage']
             }
         ]);
+
         // Listen for the response to come in once.
         this.once(EventTypes.PROMPT_RESPONSE, ([{ name }, { profession }]) => {
             this.state = this.state || {};
