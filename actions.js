@@ -10,7 +10,7 @@ const attack = (character) => {
     const damage = Math.floor(Math.random() * 10 + 1); // 1 - 10 damage
     const health = Math.floor(Math.random() * 10 + 21); // 10 - 30 health
     const gold = health + damage;
-    
+    const xp = health;
 
     const enemy = { damage, health, gold, };
 
@@ -28,7 +28,7 @@ const attack = (character) => {
         return null;
     } else {
         console.log(`You have defeated the enemy and received ${gold} gold!`)
-        character.gainXP();
+        character.gainXP(xp);
         character.gold += enemy.gold;
         console.log(`You now have ${character.profession.health} health. ${character.gold} gold and ${character.xp} XP.`);
     }
