@@ -16,7 +16,7 @@ GitHub is used to host the code, track issues, and contribute code via pull requ
 [GitHub Flow](https://guides.github.com/introduction/flow/index.html) is used to propose changes to the codebase. All pull requests are welcome and considered!
 
 1. Find an issue you want to resolve.
-2. Fork the repo and create your branch from `master`.
+2. Fork the repo and create your branch from `main`.
 3. Work your magic in code.
 4. If you've changed the usage, update the documentation.
 5. Submit a pull request and reference the issue you're resolving!

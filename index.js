@@ -3,7 +3,7 @@
  * strength receiving gold for each enemy defeated. Player can
  * recover character health by resting, at the cost of gold.
  */
-
+const chalk = require('chalk');
 const inquirer = require("inquirer");
 const Character = require("./Character");
 const state = require("./state");
@@ -63,8 +63,8 @@ const handleError = (err) => {
  */
 const createCharacter = () => {
     // Welcome them for the first time
-    console.log('It looks like you are new here.')
-    console.log("Let's make your character");
+    console.log(chalk.green ('It looks like you are new here.'))
+    console.log(chalk.green ("Let's make your character"));
 
     // offer choices of fighter thief mage
     // fighter - high health, low damage.
