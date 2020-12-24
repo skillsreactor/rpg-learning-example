@@ -5,4 +5,6 @@ module.exports = {
     STATE_UPDATED: "State Updated",
     UPDATE_STATE: "Update State",
     MESSAGE: "Message",
+    INTERFACE_READY: "Interface Ready",
+    VIEW_CHARACTER: "View Character"
 }

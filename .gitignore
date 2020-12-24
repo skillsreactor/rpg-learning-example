@@ -105,3 +105,9 @@ dist
 
 # Game save file
 save.json
+
+# Electron output
+out/
+
+# Mac Desktop Services Store
+.DS_Store
