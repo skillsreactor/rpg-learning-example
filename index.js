@@ -5,11 +5,16 @@
  */
 
 const Game = require("./Game");
-const { CommandLineInterface } = require("./interface");
+const { CommandLineInterface, ElectronInterface } = require("./interface");
 const { FileSystemState } = require("./state");
 const EventTypes = require('./EventTypes');
 
-const interface = new CommandLineInterface();
+let interface;
+if (process.argv[2] === "cli") {
+    interface = new CommandLineInterface();
+} else {
+    interface = new ElectronInterface();
+}
 const state = new FileSystemState();
 const game = new Game();
 
@@ -40,7 +45,7 @@ game.on(EventTypes.CHARACTER_DEATH, (character) => {
     state.del(err => { if (err) console.error(err) });
 })
 
-// Initial state load we want to start the interface, when the state updates
+// Initial state load we want to start the game, when the state updates
 // after that we just want to update the game and interface
 state.once(EventTypes.STATE_UPDATED, (newState) => {
     game.setState(newState);
@@ -58,6 +63,6 @@ state.once(EventTypes.STATE_UPDATED, (newState) => {
 
 
 // Load the save file.
-process.nextTick(() => {
+interface.on(EventTypes.INTERFACE_READY, () => {
     state.read();
-})
+});

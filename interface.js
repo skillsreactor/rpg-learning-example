@@ -1,6 +1,7 @@
 const events = require("events");
 const chalk = require("chalk");
 const inquirer = require("inquirer");
+const { app, BrowserWindow, ipcMain } = require('electron');
 const EventTypes = require("./EventTypes");
 const SentimentTypes = require("./SentimentTypes");
 
@@ -37,7 +38,7 @@ const messageMap = new Map([
     ],
     [
         "death",
-        "You have died. Your final stats were..."
+        "You have died. :-X Your final stats were..."
     ],
     [
         "combat.result.enemyDefeated",
@@ -79,6 +80,13 @@ const sentimentMap = new Map([
 ]);
 
 class CommandLineInterface extends events.EventEmitter {
+    constructor() {
+        super();
+        process.nextTick(() => {
+            this.emit(EventTypes.INTERFACE_READY);
+        })
+    }
+
     async promptPlayer(prompts) {
         let answers = [];
         for (let prompt of prompts) {
@@ -157,6 +165,81 @@ class CommandLineInterface extends events.EventEmitter {
     }
 }
 
+class ElectronInterface extends events.EventEmitter {
+    constructor() {
+        super();
+        this.win = null;
+        const createWindow = () => {
+            this.win = new BrowserWindow({
+                width: 800,
+                height: 600,
+                webPreferences: {
+                    nodeIntegration: true
+                }
+            });
+        
+            this.win.loadFile('index.html');
+        
+            this.win.webContents.on('did-finish-load', () => {
+                this.emit(EventTypes.INTERFACE_READY);
+            });
+        }
+        
+        app.whenReady().then(createWindow);
+        
+        app.on('window-all-closed', () => {
+            if (process.platfor !== 'darwin') {
+                app.quit();
+            }
+        });
+        
+        app.on('activate', () => {
+            if (BrowserWindow.getAllWindows().length === 0)  {
+                createWindow();
+            }
+        })
+    }
+
+    promptPlayer(prompts) {
+        let responses = [];
+        const handleResponse = (event, response) => {
+            // We want to ensure we put the responses in the same order
+            // that they were sent to the renderer.
+            let promptIndex = prompts.findIndex(prompt => response.hasOwnProperty(prompt.key));
+            responses[promptIndex] = response;
+
+            // Use object.keys because length could count indices without
+            // values, and object.keys considers only populated indices.
+            // Once we have a response for each prompt, we clean up our
+            // main process handler, so we don't have any memory leaks!
+            if (Object.keys(responses).length === prompts.length) {
+                ipcMain.removeHandler(EventTypes.PROMPT_RESPONSE);
+                this.emit(EventTypes.PROMPT_RESPONSE, responses);
+            } 
+        }
+        // Before we send our prompts message to the renderer process
+        // We set up a handler for the responses it should send back to
+        // us. We should get a response for each prompt, so we'll need
+        // to keep track of how many responses we get, and remove the
+        // handler when we get them all.
+        ipcMain.handle(EventTypes.PROMPT_RESPONSE, handleResponse);        
+        this.win.webContents.send(EventTypes.PROMPTS, prompts);
+    }
+
+    viewCharacter(character) {
+        this.win.webContents.send(EventTypes.VIEW_CHARACTER, character);
+    }
+
+    handleMessage({ key, meta, sentiment }) {
+        this.win.webContents.send(EventTypes.MESSAGE, { key, meta, sentiment });
+    }
+
+    handleDeath(character) {
+        this.win.webContents.send(EventTypes.CHARACTER_DEATH, character);
+    }
+}
+
 module.exports = {
     CommandLineInterface,
+    ElectronInterface,
 };

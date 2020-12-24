@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG Game</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        html {
+            background-color: black;
+            color: white;
+        }
+
+        body * {
+            font-family: 'Press Start 2P', cursive !important;
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+</head>
+
+<body>
+    <main>
+    </main>
+    <script>
+        const electron = require('electron');
+        const EventTypes = require('./EventTypes');
+        const SentimentTypes = require('./SentimentTypes');
+
+        const promptMessageMap = new Map([
+            ["name", "What is your name?"],
+            ["main", "Choose your action!"],
+            ["profession", "What is your profession?"]
+        ]);
+
+        const messageMap = new Map([
+            [
+                "game.name",
+                "RPG Game"  // Make this more exciting...
+            ],
+            [
+                "welcome.new",
+                "It looks like you are new here.\nLet's make your character"
+            ],
+            [
+                "welcome.returning",
+                ({ name }) => `Welcome back, ${name}`
+            ],
+            [
+                "combat.damage.dealt",
+                ({ amount }) => `You hit the enemy for ${amount} damage.`
+            ],
+            [
+                "combat.damage.receive",
+                ({ amount }) => `The enemy hits you for ${amount} damage.`
+            ],
+            [
+                "combat.hitpoints",
+                ({ amount }) => `You have ${amount} hitpoints remaining.`
+            ],
+            [
+                "death",
+                "You have died. :-X Your final stats were..."
+            ],
+            [
+                "combat.result.enemyDefeated",
+                "You have defeated the enemy"
+            ],
+            [
+                "combat.result.loot",
+                ({ gold }) => `You have received ${gold} gold!`
+            ],
+            [
+                "combat.result.stats",
+                ({ health, gold }) => `You now have ${health} health and ${gold} gold.`
+            ],
+            [
+                "rest.result.change",
+                ({ healthGain, goldCost }) =>
+                    `You have gained ${healthGain} health for ${goldCost} gold.`
+            ],
+            [
+                "rest.result.stats",
+                ({ health, gold }) => `You now have ${health} health and ${gold} gold.`
+            ],
+            [
+                "viewCharacter.header",
+                "Character Stats\n---------------"
+            ],
+        ]);
+
+        const sentimentMap = new Map([
+            [SentimentTypes.BRUTAL, 'color: red;'],
+            [SentimentTypes.PAIN, 'color: magenta;'],
+            [SentimentTypes.SERIOUS, 'background-color: white; color: black;'],
+            [SentimentTypes.POSITIVE, 'color: green'],
+            [SentimentTypes.INFORMATIONAL, 'color: yellow'],
+        ]);
+
+        const main = document.querySelector('main');
+
+        function printCharacter(character) {
+            const fragment = document.createDocumentFragment();
+            const containerEl = document.createElement("div");
+            const dlEl = document.createElement("dl");
+
+            const recursivePrint = (obj) => {
+                for (var key in obj) {
+                    if (typeof obj[key] === 'object') {
+                        recursivePrint(obj[key])
+                    } else if (typeof obj[key] !== 'function') {
+                        const dtEl = document.createElement("dt");
+                        dtEl.textContent = key;
+                        const ddEl = document.createElement("dd");
+                        ddEl.textContent = obj[key];
+
+                        dlEl.append(dtEl, ddEl);
+                    }
+                }
+            }
+
+            const headerEl = document.createElement("h1");
+            headerEl.innerText = messageMap.get("viewCharacter.header");
+
+            containerEl.appendChild(headerEl);
+
+            recursivePrint(character)
+
+            containerEl.appendChild(dlEl);
+            fragment.appendChild(containerEl);
+            main.appendChild(fragment);
+        }
+
+
+        electron.ipcRenderer.on(EventTypes.PROMPTS, (event, prompts) => {
+
+            let promptFragments = prompts.map(prompt => {
+                const fragment = document.createDocumentFragment();
+                const promptEl = document.createElement('div');
+                const promptForm = document.createElement("form");
+
+                if (prompt.type === "list") {
+                    promptMessageEl = document.createElement('p');
+                    promptMessageEl.innerText = promptMessageMap.get(prompt.key);
+                    promptForm.appendChild(promptMessageEl);
+
+                    prompt.choices.forEach(choice => {
+                        const choiceContainerEl = document.createElement('div');
+                        choiceContainerEl.style.marginBottom = "16px";
+                        const promptMessageLabel = document.createElement('label');
+                        promptMessageLabel.innerText = choice;
+                        const id = choice.split(" ").join("").toLowerCase();
+                        promptMessageLabel.setAttribute('for', id);
+                        const choiceEl = document.createElement('input');
+                        choiceEl.innerText = choice;
+                        choiceEl.setAttribute('type', 'radio');
+                        choiceEl.setAttribute('name', prompt.key);
+                        choiceEl.setAttribute('id', id);
+                        choiceEl.setAttribute('value', choice);
+                        choiceContainerEl.append(choiceEl, promptMessageLabel);
+                        promptForm.append(choiceContainerEl);
+                    });
+                } else if (prompt.type === "input") {
+                    const promptMessageEl = document.createElement('label');
+                    promptMessageEl.innerText = promptMessageMap.get(prompt.key);
+                    promptMessageEl.setAttribute('for', prompt.key);
+                    const inputField = document.createElement('input');
+                    inputField.setAttribute('type', 'text');
+                    inputField.setAttribute('name', prompt.key);
+                    inputField.setAttribute('id', prompt.key);
+                    inputField.setAttribute('required', true);
+                    promptForm.append(promptMessageEl, inputField);
+                }
+                const submitButton = document.createElement('button');
+                submitButton.setAttribute('type', 'submit');
+                submitButton.innerText = 'Submit';
+                submitButton.setAttribute('style', 'display: table;');
+                promptForm.appendChild(submitButton);
+
+                promptEl.appendChild(promptForm);
+                fragment.appendChild(promptEl);
+                return fragment;
+            });
+            main.appendChild(promptFragments.shift());
+
+
+            const handlePromptResponse = (e) => {
+                e.preventDefault();
+                const response = {};
+                for (let i = 0; i < e.target.elements.length; i++) {
+                    if (e.target.elements[i].matches('input')) {
+                        let value = "";
+                        if (e.target.elements[i].type === 'radio' || e.target.elements[i].type === 'checkbox') {
+                            if (e.target.elements[i].checked) {
+                                value = e.target.elements[i].value;
+                            }
+                        } else {
+                            value = e.target.elements[i].value;
+                        }
+
+                        if (value.trim().length) {
+                            response[e.target.elements[i].name] = value;
+                        }
+                    }
+                }
+                if (Object.getOwnPropertyNames(response).length) {
+                    electron.ipcRenderer.invoke(EventTypes.PROMPT_RESPONSE, response)
+                    main.innerHTML = "";
+                    const nextFragment = promptFragments.shift();
+                    if (nextFragment) {
+                        main.appendChild(nextFragment);
+                    } else {
+                        document.removeEventListener('submit', handlePromptResponse);
+                    }
+                }
+            }
+
+            document.addEventListener('submit', handlePromptResponse);
+        });
+
+        electron.ipcRenderer.on(EventTypes.MESSAGE, (event, { key, meta, sentiment }) => {
+            const messageEl = document.createElement('p');
+            let message = messageMap.get(key);
+            if (typeof message === 'function') {
+                message = message(meta);
+            }
+            messageEl.innerText = message;
+
+            if (sentimentMap.has(sentiment)) {
+                messageEl.setAttribute('style', sentimentMap.get(sentiment));
+            }
+
+            main.appendChild(messageEl);
+        });
+
+        electron.ipcRenderer.on(EventTypes.VIEW_CHARACTER, (event, character) => {
+            main.innerHTML = "";
+            printCharacter(character);
+        });
+
+        electron.ipcRenderer.on(EventTypes.CHARACTER_DEATH, (event, character) => {
+            const headerEl = document.createElement("h1");
+            headerEl.textContent = messageMap.get("death");
+
+            main.appendChild(headerEl);
+
+            printCharacter(character);
+        });
+    </script>
+</body>
+
+</html>
