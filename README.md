@@ -4,7 +4,7 @@
 
 ## Description
 
-A beginner friendly command line RPG game that serves as an introduction to Constructor functions, prototypes, CommonJS modules, native Node.js modules, promises, error-first style callbacks, object destructuring, arrow function expressions, ternary operators, and third-party npm modules.
+A beginner friendly command line (and desktop!) RPG game that serves as an introduction to Constructor functions, prototypes, CommonJS modules, native Node.js modules, promises, error-first style callbacks, object destructuring, arrow function expressions, ternary operators, EventEmitters, Electron, and third-party npm modules.
 
 Issue creation and pull requests are welcome and encouraged. Be sure to check the [contributing guidelines](#contributing) before contributing!
 
@@ -36,11 +36,25 @@ npm install
 
 ## Usage
 
-To execute a single round of the game:
+To execute a single round of the game using the cli:
 
 ```
-node index.js
+node index.js cli
 ```
+
+To execute a single round of the game using the Electron gui:
+
+```
+npm start
+```
+
+To build a stand-alone copy of the game:
+
+```
+npm run make
+```
+
+The output will be in the `out` directory and specific to your OS/architecture
 
 ## Media
 
