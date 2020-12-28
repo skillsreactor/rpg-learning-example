@@ -50,13 +50,6 @@ const attack = (character) => {
 const rest = (character) => {
     character.gold -= 50;
     character.profession.health += 25;
-    character.xp += 10;
-    console.log("You have gained 25 health for 10 gold and 10 XP.");
-    console.log(`You now have ${character.profession.health} health, ${character.gold} gold and ${character.xp} XP.`);
-
-    if(character.xp >= character.nextLevelAt) {
-        character.levelUp();
-    }
     
     console.log(chalk.yellow ("You have gained 25 health for 10 gold."));
     console.log(`You now have ${character.profession.health} health and ${character.gold} gold.`);
