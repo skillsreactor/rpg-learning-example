@@ -55,9 +55,6 @@ Character.prototype.levelUp = function() {
     }
 
     this.nextLevelAt = Math.floor(this.nextLevelAt + (this.nextLevelAt * 2) - (this.level * 50));
-    
-    console.log(`You are now level ${this.level}! Your now have ${this.profession.health} health and ${this.profession.attack} attack.`);
-    console.log(`Reach the next level at ${this.nextLevelAt} XP!`);
 }
 
 /**
