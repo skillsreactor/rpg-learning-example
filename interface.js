@@ -25,6 +25,14 @@ const messageMap = new Map([
         ({ name }) => `Welcome back, ${name}`
     ],
     [
+        "character.level",
+        ({ level, health, attack }) => `You are now level ${level}! You now have ${health} health and ${attack} attack.`
+    ],
+    [
+        "character.level.next",
+        ({ nextLevelAt }) => `Reach the next level at ${nextLevelAt} XP!`
+    ],
+    [
         "combat.damage.dealt",
         ({ amount }) => `You hit the enemy for ${amount} damage.`
     ],
