@@ -10,7 +10,12 @@
     "type": "git",
     "url": "git+https://github.com/skillsreactor/rpg-learning-example.git"
   },
-  "keywords": ["beginner", "learning", "rpg", "cli"],
+  "keywords": [
+    "beginner",
+    "learning",
+    "rpg",
+    "cli"
+  ],
   "author": "SkillsReactor LLC",
   "license": "MIT",
   "bugs": {
