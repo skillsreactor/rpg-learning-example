@@ -33,11 +33,8 @@ Character.prototype.receiveDamage = function(amount) {
 Character.prototype.gainXP = function(xp) {
     const multiplier = Math.min(1 + this.level/10, 3);
     const xpGained = ~~(xp * multiplier);
-
-        this.xp += xpGained;
-        console.log(`You gained ${xpGained} XP!`)
-   
-    }
+    this.xp += xpGained;
+}
 
 Character.prototype.levelUp = function() {
     this.level += 1;

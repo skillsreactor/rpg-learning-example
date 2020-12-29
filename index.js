@@ -3,108 +3,61 @@
  * strength receiving gold for each enemy defeated. Player can
  * recover character health by resting, at the cost of gold.
  */
-const chalk = require('chalk');
-const inquirer = require("inquirer");
-const Character = require("./Character");
-const state = require("./state");
-const { attack, rest, printStats } = require("./actions");
 
-const menu = (character) => {
-        // if character is found, welcome them back by name
-        console.log(`Welcome back, ${character.name}`);
-        return inquirer.prompt([
-            {
-                name: 'main',
-                message: 'Choose your action',
-                type: 'list',
-                choices: ['Fight an enemy', 'Rest', 'Display stats']
-            }
-        ]).then((answers) => {
-            // Pass our state and answers to the next step in the promise chain.
-            return { character, selection: answers.main };
-        });
-}
+const Game = require("./Game");
+const { CommandLineInterface } = require("./interface");
+const { FileSystemState } = require("./state");
+const EventTypes = require('./EventTypes');
 
-const handleMenuSelection = ({ character, selection }) => {
-    switch (selection) {
-        case 'Fight an enemy':
-            return attack(character);
-        case 'Rest':
-            return rest(character);
-        case 'Display stats':
-            return printStats(character);
-        default:
-            console.log(character, selection)
-            // ... after some undefined outcome return the updated character
-            return character;
-    }
-}
+const interface = new CommandLineInterface();
+const state = new FileSystemState();
+const game = new Game();
 
-const handleActionResult = (character) => {
-    if (character) {
-        return state.write(character);
-    } else {
-        // you have died... sorry...
-        return state.del();
-    }
-}
+game.on(EventTypes.PROMPTS, (prompts) => {
+    // When the game needs prompts, prompt the player.
+    interface.promptPlayer(prompts)
+    // And then listen for the response from the interface, and emit it back
+    // to the game, which is listening to itself for a single response.
+    interface.once(
+        EventTypes.PROMPT_RESPONSE,
+        (responses) => game.emit(EventTypes.PROMPT_RESPONSE, responses)
+    );
+});
 
-const handleError = (err) => {
-    // File not found or not parseable
-    if (err.code === 'ENOENT' || err instanceof SyntaxError) {
-        return createCharacter();
-    }
-    // All other errors,
-    throw err;
-}
+// When the game updates the state, we save it.
+game.on(EventTypes.UPDATE_STATE, (newState) => state.write(newState));
 
-/**
- * Create a character sub-routine
- */
-const createCharacter = () => {
-    // Welcome them for the first time
-    console.log(chalk.green ('It looks like you are new here.'))
-    console.log(chalk.green ("Let's make your character"));
+// When a message from the game comes in, ask the interface to handle it.
+game.on(EventTypes.MESSAGE, (message) => interface.handleMessage(message));
 
-    // offer choices of fighter thief mage
-    // fighter - high health, low damage.
-    // thief - medium health, critical chance
-    // mage - low health, high damage.
-    return inquirer.prompt([
-        {
-            name: 'name',
-            type: 'input',
-            message: 'What is your name?'
-        },
-        {
-            name: 'profession',
-            type: 'list',
-            message: 'What is your profession?',
-            choices: ['Warrior', 'Thief', 'Mage']
-        }
-    ]).then(({ name, profession }) => {
-        // Create the character object
-        const character = new Character(name, profession);
+// When the player want's to view their character, ask the interface to do it.
+game.on(EventTypes.VIEW_CHARACTER, (character) => interface.viewCharacter(character));
 
-        return state.write(character)
-    }).then(() => {
-        console.log("Character created successfully")
-    }).catch(err => {
-        console.error("Unable to save your character.", err)
+// When the character has died. View their character one last time, and then delete the save.
+game.on(EventTypes.CHARACTER_DEATH, (character) => {
+    interface.handleDeath(character);
+    // If there is an error, console error it.
+    state.del(err => { if (err) console.error(err) });
+})
+
+// Initial state load we want to start the interface, when the state updates
+// after that we just want to update the game and interface
+state.once(EventTypes.STATE_UPDATED, (newState) => {
+    game.setState(newState);
+
+    // Set up a listener for the rest of the state updates after the
+    // first time the save loads.
+    state.on(EventTypes.STATE_UPDATED, (newState) => {
+        game.setState(newState);
+    });
+
+    process.nextTick(() => {
+        game.start();
     })
-}
-
-const initializeCharacter = (data) => {
-    return new Character(data.name, data.profession.profession, data.gold, data.profession.health, data.profession.attack, data.level, data.xp, data.nextLevelAt);
-}
+})
 
 
-
-console.log('RPG Game') // Make this more exciting...
-
-state.read()
-    .then(initializeCharacter)
-    .then(menu)
-    .then(handleMenuSelection)
-    .then(handleActionResult)
-    .catch(handleError);
+// Load the save file.
+process.nextTick(() => {
+    state.read();
+})
