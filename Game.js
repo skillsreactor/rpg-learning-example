@@ -27,16 +27,18 @@ class Game extends events.EventEmitter {
 function createGame(gameState) {
     if (game) return game;
 
-    gameState.character = new Character(
-        gameState.character.name,
-        gameState.character.profession.profession,
-        gameState.character.gold,
-        gameState.character.profession.health,
-        gameState.character.attack,
-        gameState.character.level,
-        gameState.character.xp,
-        gameState.character.nextLevelAt
-    );
+    if (gameState) {
+        gameState.character = new Character(
+            gameState.character.name,
+            gameState.character.profession.profession,
+            gameState.character.gold,
+            gameState.character.profession.health,
+            gameState.character.attack,
+            gameState.character.level,
+            gameState.character.xp,
+            gameState.character.nextLevelAt
+        );
+    }
 
     game = new Game();
 
@@ -188,7 +190,7 @@ function createGame(gameState) {
                                     const health = Math.floor(Math.random() * 10 + 21); // 10 - 30 health
                                     const gold = health + damage;
                                     const xp = health;
-        
+
                                     const enemy = { damage, health, gold, xp };
 
 
@@ -241,8 +243,8 @@ function createGame(gameState) {
                                             meta: { xp: enemy.xp },
                                             sentiment: SentimentTypes.INFORMATIONAL
                                         });
-                            
-                                        if(gameState.character.xp >= gameState.character.nextLevelAt) {
+
+                                        if (gameState.character.xp >= gameState.character.nextLevelAt) {
                                             gameState.character.levelUp();
 
                                             context.game.emit(EventTypes.MESSAGE, {
@@ -274,10 +276,10 @@ function createGame(gameState) {
                                     // Always return the context inside of an 'assign' call.
                                     return context;
                                 }),
-                                    // Emit a clone of the current state after combat
+                                // Emit a clone of the current state after combat
                                 (context, event) =>
                                     context.game.emit(EventTypes.UPDATE_STATE, Object.assign({}, context.gameState))
-                                
+
                             ]
                         },
                         rest: {
