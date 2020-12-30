@@ -293,7 +293,7 @@ function createGame(gameState) {
                                 assign((context, event) => {
                                     gameState = Object.assign({}, context.gameState);
 
-                                    gameState.character.gold -= 50;
+                                    gameState.character.gold -= 10;
                                     gameState.character.profession.health += 25;
 
                                     context.game.emit(EventTypes.MESSAGE, {
