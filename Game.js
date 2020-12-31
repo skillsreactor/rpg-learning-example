@@ -293,25 +293,34 @@ function createGame(gameState) {
                                 assign((context, event) => {
                                     gameState = Object.assign({}, context.gameState);
 
-                                    gameState.character.gold -= 50;
-                                    gameState.character.profession.health += 25;
+                                    if (gameState.character.gold < 10) {
+                                        context.game.emit(EventTypes.MESSAGE, {
+                                            key: "rest.result.notEnoughGold",
+                                            meta: {
+                                                gold: gameState.character.gold
+                                            }
+                                        })
+                                    } else {
 
-                                    context.game.emit(EventTypes.MESSAGE, {
-                                        key: "rest.result.change",
-                                        meta: {
-                                            healthGain: 25,
-                                            goldCost: 10
-                                        }
-                                    });
+                                        gameState.character.gold -= 10;
+                                        gameState.character.profession.health += 25;
 
-                                    context.game.emit(EventTypes.MESSAGE, {
-                                        key: "rest.result.stats",
-                                        meta: {
-                                            health: gameState.character.profession.health,
-                                            gold: gameState.character.gold
-                                        }
-                                    });
+                                        context.game.emit(EventTypes.MESSAGE, {
+                                            key: "rest.result.change",
+                                            meta: {
+                                                healthGain: 25,
+                                                goldCost: 10
+                                            }
+                                        });
 
+                                        context.game.emit(EventTypes.MESSAGE, {
+                                            key: "rest.result.stats",
+                                            meta: {
+                                                health: gameState.character.profession.health,
+                                                gold: gameState.character.gold
+                                            }
+                                        });
+                                    }
                                     return context;
                                 }),
                                 // Emit a clone of the current state after resting

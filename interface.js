@@ -74,6 +74,10 @@ const messageMap = new Map([
         ({ health, gold }) => `You now have ${health} health and ${gold} gold.`
     ],
     [
+        "rest.result.notEnoughGold",
+        ({ gold }) => `${gold} gold is not enough to rest. You need 10 gold.`
+    ],
+    [
         "viewCharacter.header",
         "Character Stats\n---------------"
     ],
