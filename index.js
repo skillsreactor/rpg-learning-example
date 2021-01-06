@@ -48,6 +48,23 @@ interface.on(EventTypes.INTERFACE_READY, () => {
             // If there is an error, console error it.
             state.del(err => { if (err) console.error(err) });
         });
+        
+             /**
+ * Option of paying 65 gold to have Miracle Max bring you back to life
+ * 
+ * array of Miracle Max sayings:
+ * var maxSays = [
+  "Okay - you're back to life now beat it or I'll call the Brute Squad",
+  "Welcome back to life - Have fun stormin' da castle!",
+  "I will bring you back - but it better be for a very noble cause.",
+  "I will bring you back to life but don't rush me! You rush a miracle man, you get rotten miracles!"
+];
+
+var randomSaying = maxSays[Math.floor(Math.random()*maxSays.length)];
+console.log(randomSaying)
+ * 
+ * if the character doesn't have enough gold - you are all dead and Max won't bring you back
+ */
 
         process.nextTick(() => {
             game.start();
