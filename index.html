@@ -91,7 +91,10 @@
                 "rest.result.change",
                 ({ healthGain, goldCost }) =>
                     `You have gained ${healthGain} health for ${goldCost} gold.`
-            ],
+            ],[
+								"rest.result.noHealNeeded",
+								"You do not need to rest right now."
+						],
             [
                 "rest.result.stats",
                 ({ health, gold }) => `You now have ${health} health and ${gold} gold.`
@@ -137,7 +140,7 @@
 
             containerEl.appendChild(headerEl);
 
-            recursivePrint(character)
+            recursivePrint(character);
 
             containerEl.appendChild(dlEl);
             fragment.appendChild(containerEl);
