@@ -78,6 +78,10 @@ const messageMap = new Map([
         ({ gold }) => `${gold} gold is not enough to rest. You need 10 gold.`
     ],
     [
+        "rest.result.noHealNeeded",
+        "You do not need to rest right now."
+    ],
+    [
         "viewCharacter.header",
         "Character Stats\n---------------"
     ],
@@ -140,9 +144,9 @@ class CommandLineInterface extends events.EventEmitter {
                 }
             }
         }
-    
+
         this.handleMessage({ key: "viewCharacter.header" });
-        recursivePrint(character);
+        recursivePrint(character.viewCharacter());
     }
 
     handleMessage({ key, meta, sentiment }) {
@@ -189,24 +193,24 @@ class ElectronInterface extends events.EventEmitter {
                     nodeIntegration: true
                 }
             });
-        
+
             this.win.loadFile('index.html');
-        
+
             this.win.webContents.on('did-finish-load', () => {
                 this.emit(EventTypes.INTERFACE_READY);
             });
         }
-        
+
         app.whenReady().then(createWindow);
-        
+
         app.on('window-all-closed', () => {
             if (process.platfor !== 'darwin') {
                 app.quit();
             }
         });
-        
+
         app.on('activate', () => {
-            if (BrowserWindow.getAllWindows().length === 0)  {
+            if (BrowserWindow.getAllWindows().length === 0) {
                 createWindow();
             }
         })
@@ -227,19 +231,19 @@ class ElectronInterface extends events.EventEmitter {
             if (Object.keys(responses).length === prompts.length) {
                 ipcMain.removeHandler(EventTypes.PROMPT_RESPONSE);
                 this.emit(EventTypes.PROMPT_RESPONSE, responses);
-            } 
+            }
         }
         // Before we send our prompts message to the renderer process
         // We set up a handler for the responses it should send back to
         // us. We should get a response for each prompt, so we'll need
         // to keep track of how many responses we get, and remove the
         // handler when we get them all.
-        ipcMain.handle(EventTypes.PROMPT_RESPONSE, handleResponse);        
+        ipcMain.handle(EventTypes.PROMPT_RESPONSE, handleResponse);
         this.win.webContents.send(EventTypes.PROMPTS, prompts);
     }
 
     viewCharacter(character) {
-        this.win.webContents.send(EventTypes.VIEW_CHARACTER, character);
+        this.win.webContents.send(EventTypes.VIEW_CHARACTER, character.viewCharacter());
     }
 
     handleMessage({ key, meta, sentiment }) {

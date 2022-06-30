@@ -32,7 +32,8 @@ function createGame(gameState) {
             gameState.character.name,
             gameState.character.profession.profession,
             gameState.character.gold,
-            gameState.character.profession.health,
+            gameState.character.health,
+            gameState.character.maxHealth,
             gameState.character.attack,
             gameState.character.level,
             gameState.character.xp,
@@ -171,12 +172,12 @@ function createGame(gameState) {
                                 // As long as we're still alive, take another turn.
                                 {
                                     target: 'mainMenuPrompt',
-                                    cond: (context, event) => context.gameState.character.profession.health > 0,
+                                    cond: (context, event) => context.gameState.character.health > 0,
                                 },
                                 // If we're after the entry action, go to the death state.
                                 {
                                     target: 'death',
-                                    cond: (context, event) => context.gameState.character.profession.health <= 0,
+                                    cond: (context, event) => context.gameState.character.health <= 0,
                                 }
                             ],
                             entry: [
@@ -194,7 +195,7 @@ function createGame(gameState) {
                                     const enemy = { damage, health, gold, xp };
 
 
-                                    while (gameState.character.profession.health > 0 && enemy.health > 0) {
+                                    while (gameState.character.health > 0 && enemy.health > 0) {
                                         const prevEnemyHealth = enemy.health;
 
                                         enemy.health -= gameState.character.profession.attack;
@@ -204,7 +205,7 @@ function createGame(gameState) {
                                             sentiment: SentimentTypes.BRUTAL
                                         });
 
-                                        gameState.character.profession.health -= enemy.damage;
+                                        gameState.character.health -= enemy.damage;
                                         context.game.emit(EventTypes.MESSAGE, {
                                             key: 'combat.damage.receive',
                                             meta: { amount: enemy.damage },
@@ -214,12 +215,12 @@ function createGame(gameState) {
                                         context.game.emit(EventTypes.MESSAGE, {
                                             key: `combat.hitpoints`,
                                             meta: {
-                                                amount: gameState.character.profession.health
+                                                amount: gameState.character.health
                                             }
                                         });
                                     }
 
-                                    if (gameState.character.profession.health <= 0) {
+                                    if (gameState.character.health <= 0) {
                                         // We didn't make it...
                                         // Always return the context inside of an 'assign' call
                                         return context;
@@ -251,7 +252,7 @@ function createGame(gameState) {
                                                 key: "character.level",
                                                 meta: {
                                                     level: gameState.character.level,
-                                                    health: gameState.character.profession.health,
+                                                    health: gameState.character.health,
                                                     attack: gameState.character.profession.attack
                                                 },
                                                 sentiment: SentimentTypes.INFORMATIONAL
@@ -267,7 +268,7 @@ function createGame(gameState) {
                                         context.game.emit(EventTypes.MESSAGE, {
                                             key: "combat.result.stats",
                                             meta: {
-                                                health: gameState.character.profession.health,
+                                                health: gameState.character.health,
                                                 gold: gameState.character.gold,
                                                 xp: gameState.character.xp
                                             }
@@ -292,6 +293,7 @@ function createGame(gameState) {
                                 // Since we're updating the context, we wrap with 'assign' call
                                 assign((context, event) => {
                                     gameState = Object.assign({}, context.gameState);
+                                    let healthNedded = Math.min(25, gameState.character.maxHealth - gameState.character.health);
 
                                     if (gameState.character.gold < 10) {
                                         context.game.emit(EventTypes.MESSAGE, {
@@ -300,15 +302,18 @@ function createGame(gameState) {
                                                 gold: gameState.character.gold
                                             }
                                         })
+                                    } else if (healthNedded <= 0) {
+                                        context.game.emit(EventTypes.MESSAGE, {
+                                            key: "rest.result.noHealNeeded"
+                                        })
                                     } else {
-
                                         gameState.character.gold -= 10;
-                                        gameState.character.profession.health += 25;
+                                        gameState.character.health += healthNedded;
 
                                         context.game.emit(EventTypes.MESSAGE, {
                                             key: "rest.result.change",
                                             meta: {
-                                                healthGain: 25,
+                                                healthGain: healthNedded,
                                                 goldCost: 10
                                             }
                                         });
@@ -316,7 +321,7 @@ function createGame(gameState) {
                                         context.game.emit(EventTypes.MESSAGE, {
                                             key: "rest.result.stats",
                                             meta: {
-                                                health: gameState.character.profession.health,
+                                                health: gameState.character.health,
                                                 gold: gameState.character.gold
                                             }
                                         });
