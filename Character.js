@@ -1,31 +1,28 @@
-function Character(name, profession, gold, health, maxHealth, attack, level, xp, nextLevelAt) {
+function Character(name, profession, gold, health, maxHealth, attack, level, xp, nextLevelAt, inventory) {
     this.name = name;
     this.gold = gold || 100;
     this.level = level || 1;
     this.xp = xp || 0;
     this.nextLevelAt = nextLevelAt || 100;
+    this.inventory = inventory || new Inventory();
 
 
     switch (profession) {
         case 'Warrior':
             this.profession = new WarriorBehavior(health, attack);
-            this.maxHealth = maxHealth || 100;
-            this.health = health || 100;
             break;
         case 'Thief':
             this.profession = new ThiefBehavior(health, attack);
-            this.maxHealth = maxHealth || 75;
-            this.health = health || 75;
             break;
         case 'Mage':
             this.profession = new MageBehavior(health, attack);
-            this.maxHealth = maxHealth || 50;
-            this.health = health || 50;
             break;
         default:
             throw new Error(`${profession} is not an implemented class`);
     }
 
+    this.maxHealth = maxHealth || this.profession.baseHealth;
+    this.health = health || this.profession.baseHealth;
 
 }
 
@@ -65,6 +62,26 @@ Character.prototype.viewCharacter = function () {
         'Attack': this.profession.attack,
         'Profession': this.profession.profession
     };
+}
+
+function Inventory() {
+    this.maxSlots = 10;
+    this.freeSlots = 10;
+    this.items = [];
+}
+
+Inventory.prototype.addItem = function (item) {
+    for (invItem of this.items) {
+        if (invItem.name == item.name) {
+            invItem.qtd += item.qtd;
+            return;
+        }
+    }
+    if (this.freeSlots <= 0) {
+        return;
+    }
+    this.items.push(item);
+    this.freeSlots--;
 }
 
 /**

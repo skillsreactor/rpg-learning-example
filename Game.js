@@ -34,10 +34,11 @@ function createGame(gameState) {
             gameState.character.gold,
             gameState.character.health,
             gameState.character.maxHealth,
-            gameState.character.attack,
+            gameState.character.profession.attack,
             gameState.character.level,
             gameState.character.xp,
-            gameState.character.nextLevelAt
+            gameState.character.nextLevelAt,
+            gameState.character.inventory
         );
     }
 
@@ -142,6 +143,10 @@ function createGame(gameState) {
                                     {
                                         target: 'viewCharacter',
                                         cond: (context, { responses: [{ main }] }) => main === ActionTypes.VIEW_CHARACTER
+                                    },
+                                    {
+                                        target: 'viewInventory',
+                                        cond: (context, { responses: [{ main }] }) => main === ActionTypes.VIEW_INVENTORY
                                     }
                                 ]
                             },
@@ -155,7 +160,8 @@ function createGame(gameState) {
                                         choices: [
                                             ActionTypes.FIGHT_ENEMY,
                                             ActionTypes.REST,
-                                            ActionTypes.VIEW_CHARACTER
+                                            ActionTypes.VIEW_CHARACTER,
+                                            ActionTypes.VIEW_INVENTORY
                                         ]
                                     }
                                 ]),
@@ -226,6 +232,10 @@ function createGame(gameState) {
                                         return context;
                                     } else {
                                         // We won!
+                                        if (Math.random() > 0.5)
+                                            context.gameState.character.inventory.addItem({ name: 'Raw Meat', qtd: Math.floor(Math.random() * 3 + 1) })
+                                        else
+                                            context.gameState.character.inventory.addItem({ name: 'Bone', qtd: Math.floor(Math.random() * 2 + 1) })
                                         context.game.emit(EventTypes.MESSAGE, {
                                             key: "combat.result.enemyDefeated"
                                         });
@@ -293,7 +303,6 @@ function createGame(gameState) {
                                 // Since we're updating the context, we wrap with 'assign' call
                                 assign((context, event) => {
                                     gameState = Object.assign({}, context.gameState);
-                                    let healthNedded = Math.min(25, gameState.character.maxHealth - gameState.character.health);
 
                                     if (gameState.character.gold < 10) {
                                         context.game.emit(EventTypes.MESSAGE, {
@@ -302,18 +311,15 @@ function createGame(gameState) {
                                                 gold: gameState.character.gold
                                             }
                                         })
-                                    } else if (healthNedded <= 0) {
-                                        context.game.emit(EventTypes.MESSAGE, {
-                                            key: "rest.result.noHealNeeded"
-                                        })
                                     } else {
+
                                         gameState.character.gold -= 10;
-                                        gameState.character.health += healthNedded;
+                                        gameState.character.health += 25;
 
                                         context.game.emit(EventTypes.MESSAGE, {
                                             key: "rest.result.change",
                                             meta: {
-                                                healthGain: healthNedded,
+                                                healthGain: 25,
                                                 goldCost: 10
                                             }
                                         });
@@ -341,6 +347,13 @@ function createGame(gameState) {
                             always: 'mainMenuPrompt',
                             entry: [
                                 (context, event) => context.game.emit(EventTypes.VIEW_CHARACTER, context.gameState.character)
+                            ]
+                        },
+                        viewInventory: {
+                            // Always go back to the main menu afterwards
+                            always: 'mainMenuPrompt',
+                            entry: [
+                                (context, event) => context.game.emit(EventTypes.VIEW_INVENTORY, context.gameState.character.inventory)
                             ]
                         },
                         // A final state of our main menu nested state. When we enter this state we emit

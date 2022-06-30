@@ -32,16 +32,18 @@ interface.on(EventTypes.INTERFACE_READY, () => {
                 (responses) => game.handlePlayerResponse(responses)
             );
         });
-        
+
         // When the game updates the state, we save it.
         game.on(EventTypes.UPDATE_STATE, (newState) => state.write(newState));
-        
+
         // When a message from the game comes in, ask the interface to handle it.
         game.on(EventTypes.MESSAGE, (message) => interface.handleMessage(message));
-        
+
         // When the player want's to view their character, ask the interface to do it.
         game.on(EventTypes.VIEW_CHARACTER, (character) => interface.viewCharacter(character));
-        
+
+        game.on(EventTypes.VIEW_INVENTORY, (inventory) => interface.viewInventory(inventory));
+
         // When the character has died. View their character one last time, and then delete the save.
         game.on(EventTypes.CHARACTER_DEATH, (character) => {
             interface.handleDeath(character);
