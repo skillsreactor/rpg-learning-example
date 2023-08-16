@@ -47,7 +47,6 @@ Character.prototype.levelUp = function () {
     addedHealth = (this.level - 1) * 20;
 
     this.maxHealth += addedHealth;
-    this.maxHealth += addedHealth;
 
     this.nextLevelAt = Math.floor(this.nextLevelAt + (this.nextLevelAt * 2) - (this.level * 50));
 }
@@ -66,7 +65,7 @@ Character.prototype.viewCharacter = function () {
 
 function Inventory() {
     this.maxSlots = 10;
-    this.freeSlots = 10;
+    this.usedSlots = 0;
     this.items = [];
 }
 
@@ -77,11 +76,11 @@ Inventory.prototype.addItem = function (item) {
             return;
         }
     }
-    if (this.freeSlots <= 0) {
+    if (this.usedSlots >= this.maxSlots) {
         return;
     }
     this.items.push(item);
-    this.freeSlots--;
+    this.usedSlots++;
 }
 
 /**

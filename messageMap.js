@@ -37,7 +37,7 @@ module.exports = new Map([
   ],
   [
     "combat.result.enemyDefeated",
-    "You have defeated the enemy"
+    ({drop}) => "You have defeated the enemy" + drop!=null?`The enemy droped ${drop.qtd} ${drop.name}.`:""
   ],
   [
     "combat.result.loot",

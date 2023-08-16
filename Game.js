@@ -147,6 +147,10 @@ function createGame(gameState) {
                                     {
                                         target: 'viewInventory',
                                         cond: (context, { responses: [{ main }] }) => main === ActionTypes.VIEW_INVENTORY
+                                    },
+                                    {
+                                        target: 'death',
+                                        cond: (context, { responses: [{ main }] }) => main === ActionTypes.SUICIDE
                                     }
                                 ]
                             },
@@ -161,7 +165,9 @@ function createGame(gameState) {
                                             ActionTypes.FIGHT_ENEMY,
                                             ActionTypes.REST,
                                             ActionTypes.VIEW_CHARACTER,
-                                            ActionTypes.VIEW_INVENTORY
+                                            ActionTypes.VIEW_INVENTORY,
+                                            //Debug only
+                                            ActionTypes.SUICIDE,
                                         ]
                                     }
                                 ]),
@@ -189,7 +195,7 @@ function createGame(gameState) {
                             entry: [
                                 // Run the combat, and update the context gameState. Since we are modifying the
                                 // gameState of the context, we need to use the assign function.
-                                assign((context, event) => {
+                                assign(async (context, event) => {
                                     const gameState = context.gameState;
 
                                     // Naive enemy implementation...
@@ -232,12 +238,18 @@ function createGame(gameState) {
                                         return context;
                                     } else {
                                         // We won!
+                                        var drop = null;
                                         if (Math.random() > 0.5)
-                                            context.gameState.character.inventory.addItem({ name: 'Raw Meat', qtd: Math.floor(Math.random() * 3 + 1) })
+                                            drop = { name: 'Raw Meat', qtd: Math.floor(Math.random() * 3 + 1) };
                                         else
-                                            context.gameState.character.inventory.addItem({ name: 'Bone', qtd: Math.floor(Math.random() * 2 + 1) })
+                                            drop = { name: 'Bone', qtd: Math.floor(Math.random() * 2 + 1) };
+
+                                        if (drop != null)
+                                            context.gameState.character.inventory.addItem(drop);
+
                                         context.game.emit(EventTypes.MESSAGE, {
-                                            key: "combat.result.enemyDefeated"
+                                            key: "combat.result.enemyDefeated",
+                                            meta: { drop },
                                         });
 
                                         context.game.emit(EventTypes.MESSAGE, {
@@ -288,8 +300,8 @@ function createGame(gameState) {
                                     return context;
                                 }),
                                 // Emit a clone of the current state after combat
-                                (context, event) =>
-                                    context.game.emit(EventTypes.UPDATE_STATE, Object.assign({}, context.gameState))
+                                async (context, event) =>
+                                    context.game.emit(EventTypes.UPDATE_STATE, await Object.assign({}, context.gameState))
 
                             ]
                         },
@@ -314,12 +326,24 @@ function createGame(gameState) {
                                     } else {
 
                                         gameState.character.gold -= 10;
-                                        gameState.character.health += 25;
+                                        var needHealth = gameState.character.maxHealth - gameState.character.health;
+
+                                        if (needHealth <= 0) {
+                                            context.game.emit(EventTypes.MESSAGE, {
+                                                key: "rest.result.noHealNeeded"
+                                            });
+                                            return context;
+                                        }
+
+                                        var healthGained = Math.min(needHealth, 25);
+
+
+                                        gameState.character.health += healthGained;
 
                                         context.game.emit(EventTypes.MESSAGE, {
                                             key: "rest.result.change",
                                             meta: {
-                                                healthGain: 25,
+                                                healthGain: healthGained,
                                                 goldCost: 10
                                             }
                                         });

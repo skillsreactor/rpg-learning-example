@@ -5,6 +5,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const EventTypes = require("./EventTypes");
 const SentimentTypes = require("./SentimentTypes");
 const messageMap = require("./messageMap");
+const Inventory = require("./Character");
 
 const promptMessageMap = new Map([
     ["name", "What is your name?"],
@@ -75,19 +76,12 @@ class CommandLineInterface extends events.EventEmitter {
     }
 
     viewInventory(inventory) {
-        const recursivePrint = (obj) => {
-            for (var key in obj) {
-                if (typeof obj[key] === 'object') {
-                    recursivePrint(obj[key])
-                } else if (typeof obj[key] !== 'function') {
-                    // TODO: Make map entries for the stats!
-                    this.handleMessage({ key: `${key}: ${obj[key]}` });
-                }
-            }
-        }
-
         this.handleMessage({ key: "viewInventory.header" });
-        recursivePrint(inventory);
+        this.handleMessage({ key: `Slots: ${inventory.usedSlots}/${inventory.maxSlots}` });
+        inventory.items.forEach(item => {
+            this.handleMessage({ key: `${item.name} (${item.qtd})` });
+        });
+        this.handleMessage({ key: `-------------` });
     }
 
     handleMessage({ key, meta, sentiment }) {

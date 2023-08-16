@@ -3,4 +3,5 @@ module.exports = {
     REST: "Rest",
     VIEW_CHARACTER: "View Character",
     VIEW_INVENTORY: "View Inventory",
+    SUICIDE: "Suicide",
 }
