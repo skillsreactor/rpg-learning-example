@@ -4,83 +4,13 @@ const inquirer = require("inquirer");
 const { app, BrowserWindow, ipcMain } = require('electron');
 const EventTypes = require("./EventTypes");
 const SentimentTypes = require("./SentimentTypes");
+const messageMap = require("./messageMap");
+const Inventory = require("./Character");
 
 const promptMessageMap = new Map([
     ["name", "What is your name?"],
     ["main", "Choose your action!"],
     ["profession", "What is your profession?"]
-]);
-
-const messageMap = new Map([
-    [
-        "game.name",
-        "RPG Game"  // Make this more exciting...
-    ],
-    [
-        "welcome.new",
-        "It looks like you are new here.\nLet's make your character"
-    ],
-    [
-        "welcome.returning",
-        ({ name }) => `Welcome back, ${name}`
-    ],
-    [
-        "character.level",
-        ({ level, health, attack }) => `You are now level ${level}! You now have ${health} health and ${attack} attack.`
-    ],
-    [
-        "character.level.next",
-        ({ nextLevelAt }) => `Reach the next level at ${nextLevelAt} XP!`
-    ],
-    [
-        "combat.damage.dealt",
-        ({ amount }) => `You hit the enemy for ${amount} damage.`
-    ],
-    [
-        "combat.damage.receive",
-        ({ amount }) => `The enemy hits you for ${amount} damage.`
-    ],
-    [
-        "combat.hitpoints",
-        ({ amount }) => `You have ${amount} hitpoints remaining.`
-    ],
-    [
-        "death",
-        "You have died. :-X Your final stats were..."
-    ],
-    [
-        "combat.result.enemyDefeated",
-        "You have defeated the enemy"
-    ],
-    [
-        "combat.result.loot",
-        ({ gold }) => `You have received ${gold} gold!`
-    ],
-    [
-        "combat.result.xp",
-        ({ xp }) => `You gained ${xp} XP!`
-    ],
-    [
-        "combat.result.stats",
-        ({ health, gold, xp }) => `You now have ${health} health and ${gold} gold and ${xp} XP.`
-    ],
-    [
-        "rest.result.change",
-        ({ healthGain, goldCost }) =>
-            `You have gained ${healthGain} health for ${goldCost} gold.`
-    ],
-    [
-        "rest.result.stats",
-        ({ health, gold }) => `You now have ${health} health and ${gold} gold.`
-    ],
-    [
-        "rest.result.notEnoughGold",
-        ({ gold }) => `${gold} gold is not enough to rest. You need 10 gold.`
-    ],
-    [
-        "viewCharacter.header",
-        "Character Stats\n---------------"
-    ],
 ]);
 
 const sentimentMap = new Map([
@@ -140,9 +70,20 @@ class CommandLineInterface extends events.EventEmitter {
                 }
             }
         }
-    
+
         this.handleMessage({ key: "viewCharacter.header" });
-        recursivePrint(character);
+        recursivePrint(character.viewCharacter());
+    }
+
+    viewInventory(inventory) {
+        this.handleMessage({ key: "viewInventory.header" });
+        this.handleMessage({ key: `Slots: ${inventory.usedSlots}/${inventory.maxSlots}` });
+        
+        this.handleMessage({ key: "---------------" });
+        inventory.items.forEach(item => {
+            this.handleMessage({ key: `${item.name} (${item.qtd})` });
+        });
+        this.handleMessage({ key: "---------------" });
     }
 
     handleMessage({ key, meta, sentiment }) {
@@ -189,24 +130,24 @@ class ElectronInterface extends events.EventEmitter {
                     nodeIntegration: true
                 }
             });
-        
+
             this.win.loadFile('index.html');
-        
+
             this.win.webContents.on('did-finish-load', () => {
                 this.emit(EventTypes.INTERFACE_READY);
             });
         }
-        
+
         app.whenReady().then(createWindow);
-        
+
         app.on('window-all-closed', () => {
             if (process.platfor !== 'darwin') {
                 app.quit();
             }
         });
-        
+
         app.on('activate', () => {
-            if (BrowserWindow.getAllWindows().length === 0)  {
+            if (BrowserWindow.getAllWindows().length === 0) {
                 createWindow();
             }
         })
@@ -227,19 +168,19 @@ class ElectronInterface extends events.EventEmitter {
             if (Object.keys(responses).length === prompts.length) {
                 ipcMain.removeHandler(EventTypes.PROMPT_RESPONSE);
                 this.emit(EventTypes.PROMPT_RESPONSE, responses);
-            } 
+            }
         }
         // Before we send our prompts message to the renderer process
         // We set up a handler for the responses it should send back to
         // us. We should get a response for each prompt, so we'll need
         // to keep track of how many responses we get, and remove the
         // handler when we get them all.
-        ipcMain.handle(EventTypes.PROMPT_RESPONSE, handleResponse);        
+        ipcMain.handle(EventTypes.PROMPT_RESPONSE, handleResponse);
         this.win.webContents.send(EventTypes.PROMPTS, prompts);
     }
 
     viewCharacter(character) {
-        this.win.webContents.send(EventTypes.VIEW_CHARACTER, character);
+        this.win.webContents.send(EventTypes.VIEW_CHARACTER, character.viewCharacter());
     }
 
     handleMessage({ key, meta, sentiment }) {
