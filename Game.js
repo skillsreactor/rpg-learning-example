@@ -250,6 +250,7 @@ function createGame(gameState) {
                                         context.game.emit(EventTypes.MESSAGE, {
                                             key: "combat.result.enemyDefeated",
                                             meta: { drop },
+                                            sentiment: SentimentTypes.POSITIVE
                                         });
 
                                         context.game.emit(EventTypes.MESSAGE, {

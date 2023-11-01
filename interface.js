@@ -78,10 +78,12 @@ class CommandLineInterface extends events.EventEmitter {
     viewInventory(inventory) {
         this.handleMessage({ key: "viewInventory.header" });
         this.handleMessage({ key: `Slots: ${inventory.usedSlots}/${inventory.maxSlots}` });
+        
+        this.handleMessage({ key: "---------------" });
         inventory.items.forEach(item => {
             this.handleMessage({ key: `${item.name} (${item.qtd})` });
         });
-        this.handleMessage({ key: `-------------` });
+        this.handleMessage({ key: "---------------" });
     }
 
     handleMessage({ key, meta, sentiment }) {
